@@ -28,6 +28,16 @@ dependencies {
     implementation 'androidx.recyclerview:recyclerview:1.1.0'
     implementation 'androidx.cardview:cardview:1.0.0'
     implementation 'com.intuit.sdp:sdp-android:1.0.6'
-    compile 'com.squareup.retrofit2:retrofit:2.6.0'
-    compile 'com.squareup.retrofit2:converter-gson:2.3.0'
+
+    implementation 'com.squareup.retrofit2:retrofit:2.6.0'
+    implementation 'com.squareup.retrofit2:converter-scalars:2.5.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.3.0'
+
+    implementation 'com.google.android.gms:play-services-location:17.0.0'
+    implementation 'com.google.android.gms:play-services-awareness:17.1.0'
+
+    implementation 'org.glassfish:javax.annotation:10.0-b28'
+
+    implementation 'com.mcxiaoke.volley:library-aar:1.0.0'
+
 }

@@ -1,12 +1,18 @@
 package com.sai.androidq;
 
 import android.os.Bundle;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
-import android.widget.Toast;
+import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.Arrays;
 import java.util.List;
 
 import retrofit2.Call;
@@ -14,57 +20,76 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
+import retrofit2.converter.scalars.ScalarsConverterFactory;
 
 public class SecondActivity extends AppCompatActivity {
-
-
-    ListView listView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.second_activity);
 
-        listView = (ListView) findViewById(R.id.listViewHeroes);
-
-        //calling the method to display the heroes
-        getHeroes();
-    }
-
-    private void getHeroes() {
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(Api.BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create()) //Here we are using the GsonConverterFactory to directly convert json data to object
+                .baseUrl(RecyclerInterface.JSONURL)
+                .addConverterFactory(ScalarsConverterFactory.create())
+                .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
-        Api api = retrofit.create(Api.class);
+        RecyclerInterface api = retrofit.create(RecyclerInterface.class);
+        try {
+            JSONObject paramObject = new JSONObject();
+            paramObject.put("EMP_LOGIN_ID","ho3");
+            paramObject.put("area_id","43");
+            /*paramObject.put("StartDate","10/21/2019");
+            paramObject.put("EndDate","10/21/2019");*/
 
-        Call<List<Hero>> call = api.getHeroes();
+            Call<String> userCall = api.getUser(paramObject.toString());
+            userCall.enqueue(new Callback<String>() {
+                @Override
+                public void onResponse(@NonNull Call<String> call, @NonNull Response<String> response) {
 
-        call.enqueue(new Callback<List<Hero>>() {
-            @Override
-            public void onResponse(Call<List<Hero>> call, Response<List<Hero>> response) {
-                List<Hero> heroList = response.body();
+                    String resp = "";
 
-                //Creating an String array for the ListView
-                String[] heroes = new String[heroList.size()];
+                    resp = response.body().toString();
 
-                //looping through all the heroes and inserting the names inside the string array
-                for (int i = 0; i < heroList.size(); i++) {
-                    heroes[i] = heroList.get(i).getName();
+                    if(resp.toString().contains("\\\\")){
+                        resp = resp.toString().replaceAll("\\\\","");
+                    }else{
+                        resp = resp.toString();
+                    }
+
+                    Log.d("response",resp.toString());
+
+                    GsonBuilder builder = new GsonBuilder();
+                    Gson gson = builder.create();
+                    List<RetrofitResponse> finalresponce = Arrays.asList(gson.fromJson(resp, RetrofitResponse[].class));
+
+                    // spinner adapter must be given parameter as finalresponce if it has only on single responce
+
+                    // in case of getting multiple responces and want to iterate for inserting or updating in databse. -- as below
+
+                    int areaid = 0;
+
+                    for(RetrofitResponse retresp : finalresponce){
+
+                        areaid = retresp.getAREAID();
+
+                    }
+
+
+
                 }
 
+                @Override
+                public void onFailure(@NonNull Call<String> call, @NonNull Throwable t) {
+                    Log.e("Retrofit Error : ",t.getMessage().toString());
+                }
+            });
 
-                //displaying the string array into listview
-                listView.setAdapter(new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_list_item_1, heroes));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
 
-            }
-
-            @Override
-            public void onFailure(Call<List<Hero>> call, Throwable t) {
-                Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
     }
 
 }
